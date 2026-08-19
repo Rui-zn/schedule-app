@@ -14,6 +14,7 @@ const autostart = require('./autostart');
 
 const SMOKE = process.argv.includes('--smoke');     // 冒烟测试模式：初始化数据层后直接退出
 const UITEST = process.argv.includes('--uitest');   // UI 自检模式：加载真实页面做端到端 CRUD 校验后退出
+const SHOT = process.argv.includes('--shot');       // 截图模式：加载页面后截取主窗口保存到 docs/screenshots/main.png
 const HIDDEN = process.argv.includes('--hidden');  // 静默启动（开机自启使用）：只驻留托盘
 const CHECK_INTERVAL_MS = 20 * 1000;               // 提醒扫描间隔
 const APP_ID = 'com.local.schedule';
@@ -151,11 +152,35 @@ function createWindow() {
   win.on('closed', () => { win = null; });
 
   win.once('ready-to-show', () => {
+    if (SHOT) {
+      win.show(); // 截图模式强制显示，保证 capturePage 可渲染
+      return;
+    }
     if (!HIDDEN && !UITEST && !settings.get().startMinimized) showWindow();
   });
 
   if (UITEST) {
     win.webContents.once('did-finish-load', () => setTimeout(runUiTest, 2500));
+  }
+
+  if (SHOT) {
+    win.webContents.once('did-finish-load', () => setTimeout(runShot, 4000));
+  }
+}
+
+/** 截图模式：截取主窗口保存为 PNG（用于 README 等文档配图），随后退出 */
+async function runShot() {
+  const outDir = path.join(__dirname, '..', '..', 'docs', 'screenshots');
+  const outFile = path.join(outDir, 'main.png');
+  try {
+    const image = await win.webContents.capturePage();
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.writeFileSync(outFile, image.toPNG());
+    console.log('SHOT_OK', outFile);
+    app.exit(0);
+  } catch (err) {
+    console.error('SHOT_FAIL', err);
+    app.exit(1);
   }
 }
 
@@ -406,8 +431,13 @@ if (!gotLock) {
   });
 
   app.whenReady().then(async () => {
+    // 数据目录覆盖（开发/演示/便携用途）：SCHEDULE_USER_DATA 指向的目录将作为 userData
+    if (process.env.SCHEDULE_USER_DATA) {
+      app.setPath('userData', path.resolve(process.env.SCHEDULE_USER_DATA));
+    }
+
     if (SMOKE || UITEST) {
-      // 测试模式：使用临时数据目录，避免污染真实数据
+      // 测试模式：使用临时数据目录，避免污染真实数据（优先级高于环境变量）
       app.setPath('userData', path.join(os.tmpdir(), `schedule-${SMOKE ? 'smoke' : 'uitest'}-${Date.now()}`));
     }
 
@@ -430,6 +460,12 @@ if (!gotLock) {
 
     if (UITEST) {
       // UI 自检：只创建窗口（不创建托盘 / 提醒循环），测试结束后自动退出
+      createWindow();
+      return;
+    }
+
+    if (SHOT) {
+      // 截图模式：只创建窗口，截图结束后自动退出（数据目录由 SCHEDULE_USER_DATA 指定）
       createWindow();
       return;
     }

@@ -74,8 +74,15 @@
 schedule/
 ├── package.json              # 依赖、脚本、electron-builder 配置
 ├── README.md                 # 快速上手（给用户）
+├── LICENSE                   # MIT
+├── .github/
+│   └── workflows/ci.yml      # GitHub Actions：push 测试构建，v* 标签自动发布
 ├── docs/
-│   └── PROJECT.md            # 本文档（给 AI 开发）
+│   ├── PROJECT.md            # 本文档（给 AI 开发）
+│   ├── screenshots/          # 界面截图（--shot 模式生成）
+│   └── release-notes/        # 各版本发布说明归档
+├── scripts/
+│   └── demo-data.js          # 演示数据生成（截图 / 演示用）
 ├── assets/
 │   ├── icon.png              # 应用/窗口图标（256×256）
 │   └── tray.png              # 托盘图标（32×32）
@@ -274,6 +281,31 @@ npm test               # 数据层 + 自启模块测试（纯 Node，无 Electro
 npm run test:ui        # UI 自检：真实页面端到端 CRUD + DOM 校验（自动退出）
 npm run dist           # 打包 portable exe（输出 dist/）
 ```
+
+### 8.3 特殊启动参数 / 环境变量（测试与文档配图）
+
+| 方式 | 作用 |
+| --- | --- |
+| `electron . --smoke` | 冒烟测试：初始化数据层后退出（不建 GUI） |
+| `electron . --uitest` | UI 自检：真实页面端到端 CRUD + 目录切换校验后退出 |
+| `electron . --shot` | 截图模式：加载页面 4 秒后截取主窗口 → `docs/screenshots/main.png`，自动退出 |
+| `SCHEDULE_USER_DATA=<目录>` | 覆盖 userData（演示/截图/便携用途），优先级低于 `--smoke`/`--uitest` 的临时目录 |
+
+生成演示数据并截图：
+
+```bash
+node scripts/demo-data.js .demo-data        # 生成演示数据
+$env:SCHEDULE_USER_DATA="<绝对路径>\.demo-data"; npx electron . --shot
+```
+
+### 8.4 持续集成 / 自动发布（GitHub Actions）
+
+`.github/workflows/ci.yml`（windows-latest）：
+
+1. **push 到 `main` / PR**：`npm ci` → `npm test` → `npm run test:ui` → `npm run dist`，exe 重命名为 `ScheduleApp-<version>-portable.exe` 后上传 Artifact（保留 7 天）。
+2. **推送 `v*` 标签**：上述流程 + `softprops/action-gh-release` 自动创建 Release 并附带 exe（`generate_release_notes` 自动生成说明）。
+
+**发版约定**：先把 `package.json` 与 `package-lock.json` 的 `version` 同步升号并提交，再 `git tag v<版本> && git push origin v<版本>`。若需自定义发布说明，在 `docs/release-notes/v<版本>.md` 写好并在 workflow 里切换为 `body_path`。
 
 > 提示：`test/db.test.js` 覆盖重复展开与数据层；`test/autostart.test.js` 在**临时目录**里创建/读取/删除启动文件夹快捷方式（不会碰真实启动文件夹）；`--smoke` / `--uitest` 两个启动参数使用临时 userData，不会污染真实数据。国内网络下载 Electron 慢时可设置镜像：`$env:ELECTRON_MIRROR='https://npmmirror.com/mirrors/electron/'`。
 

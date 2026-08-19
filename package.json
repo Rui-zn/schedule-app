@@ -1,7 +1,7 @@
 {
   "name": "schedule-app",
   "productName": "日程表",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "本地日程表桌面应用（Electron + SQLite），支持增删改查、桌面提醒、重复日程、分类标签、完成状态与开机自启",
   "main": "src/main/main.js",
   "author": "Rui-zn",

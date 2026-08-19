@@ -6,6 +6,8 @@
 一个运行在 Windows 本地的日程表桌面应用：**Electron + SQLite（sql.js）**，常驻系统托盘后台运行，支持开机自启。
 仓库地址：https://github.com/Rui-zn/schedule-app
 
+![主界面](docs/screenshots/main.png)
+
 ## ✨ 功能
 
 - **日程增删改查**：标题、开始/结束时间、全天、备注
@@ -33,8 +35,22 @@ npm start     # 启动应用
 npm run start:hidden   # 静默启动（仅托盘，模拟开机自启）
 npm test               # 数据层 + 自启模块测试（纯 Node，无需图形界面）
 npm run test:ui        # UI 端到端自检（真实页面 CRUD + DOM 校验）
-npm run dist           # 打包单文件 portable exe（输出到 dist/）
+npm run dist           # 本地打包 portable exe（输出到 dist/）
 ```
+
+## 🤖 持续集成与自动发布
+
+GitHub Actions 已配置（`.github/workflows/ci.yml`）：
+
+- **push 到 `main`**：自动运行测试 + UI 自检 + 打包，构建产物作为 Artifact 保留 7 天
+- **推送 `v*` 标签**：自动构建并创建 GitHub Release（附 `ScheduleApp-<版本>-portable.exe`）
+
+```bash
+# 发布新版本（示例：v1.0.2）
+git tag v1.0.2 && git push origin v1.0.2
+```
+
+发布前记得把 `package.json` / `package-lock.json` 的 `version` 同步升号。
 
 ## 📖 使用说明
 
