@@ -183,7 +183,8 @@ CREATE INDEX IF NOT EXISTS idx_reminders_fire ON reminders(fire_at, notified);
 
 ### 6.3 开机自启（`autostart.js`）
 
-- **位置**：`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\日程表.lnk`（当前用户启动文件夹）。
+- **位置**：`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\ScheduleApp.lnk`（当前用户启动文件夹）。
+- **文件名必须为 ASCII**：en-US 等非中文系统上，WScript.Shell 会把非 ANSI 字符转成 `?`，导致快捷方式保存失败（CI 实测发现）。
 - **开启**：用 PowerShell `WScript.Shell` COM 创建快捷方式：
   - 打包版：目标 `process.execPath`，参数 `--hidden`；
   - 开发版：目标 `electron.exe`，参数 `<应用目录> --hidden`（方便调试自启流程）。

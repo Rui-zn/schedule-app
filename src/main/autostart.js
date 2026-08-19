@@ -2,7 +2,7 @@
 
 /**
  * 开机自启：在「用户启动文件夹」创建 / 删除快捷方式。
- *   位置：%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\日程表.lnk
+ *   位置：%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\ScheduleApp.lnk
  *   方式：PowerShell WScript.Shell COM 创建 .lnk（不写注册表，用户可见易管理）。
  * 注意：本模块禁止 require('electron')，所有路径由调用方传入。
  */
@@ -11,7 +11,9 @@ const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 
-const SHORTCUT_NAME = '日程表.lnk';
+// 快捷方式文件名必须是 ASCII：en-US 等非中文系统的 WScript.Shell 会把
+// 非 ANSI 字符转成 '?' 导致保存失败（FileNotFoundException）。
+const SHORTCUT_NAME = 'ScheduleApp.lnk';
 const PS_TIMEOUT_MS = 15000;
 
 function startupFolder(appDataDir) {
@@ -65,7 +67,7 @@ async function createShortcut(paths, targetInfo) {
     `$sc.Arguments = ${psQuote(targetInfo.args || '')}`,
     `$sc.WorkingDirectory = ${psQuote(targetInfo.workDir || path.dirname(targetInfo.target))}`,
     `$sc.IconLocation = ${psQuote(`${targetInfo.target}, 0`)}`,
-    `$sc.Description = '日程表（开机自启）'`,
+    `$sc.Description = 'ScheduleApp'`,
     '$sc.Save()'
   ].join('\n');
   await runPowerShell(script);
