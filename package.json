@@ -4,8 +4,12 @@
   "version": "1.0.0",
   "description": "本地日程表桌面应用（Electron + SQLite），支持增删改查、桌面提醒、重复日程、分类标签、完成状态与开机自启",
   "main": "src/main/main.js",
-  "author": "local",
+  "author": "Rui-zn",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rui-zn/schedule-app.git"
+  },
   "scripts": {
     "start": "electron .",
     "start:hidden": "electron . --hidden",

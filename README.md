@@ -1,6 +1,10 @@
 # 📅 日程表（Schedule App）
 
+[![GitHub Release](https://img.shields.io/github/v/release/Rui-zn/schedule-app)](https://github.com/Rui-zn/schedule-app/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 一个运行在 Windows 本地的日程表桌面应用：**Electron + SQLite（sql.js）**，常驻系统托盘后台运行，支持开机自启。
+仓库地址：https://github.com/Rui-zn/schedule-app
 
 ## ✨ 功能
 
