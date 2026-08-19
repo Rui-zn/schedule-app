@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:" />
+  <title>日程表</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <div class="brand"><span class="brand-icon">📅</span><span>日程表</span></div>
+      <nav id="nav">
+        <button class="nav-btn active" data-page="schedule">🗓 日程</button>
+        <button class="nav-btn" data-page="categories">🏷 分类</button>
+        <button class="nav-btn" data-page="settings">⚙ 设置</button>
+      </nav>
+      <div class="sidebar-footer" id="appVersion"></div>
+    </aside>
+
+    <main id="main">
+      <!-- 日程页 -->
+      <section id="page-schedule" class="page active">
+        <div class="toolbar">
+          <div class="seg" id="viewSeg">
+            <button class="seg-btn active" data-view="list">列表</button>
+            <button class="seg-btn" data-view="month">月历</button>
+          </div>
+          <input type="search" id="searchInput" class="search" placeholder="搜索标题 / 备注…" />
+          <select id="categoryFilter" class="select"></select>
+          <label class="check"><input type="checkbox" id="includeDone" /> 显示已完成</label>
+          <div class="spacer"></div>
+          <button id="btnNew" class="btn primary">＋ 新建日程</button>
+        </div>
+
+        <div id="listView" class="view active"></div>
+
+        <div id="monthView" class="view">
+          <div class="month-head">
+            <button id="prevMonth" class="btn ghost">‹</button>
+            <h2 id="monthLabel"></h2>
+            <button id="nextMonth" class="btn ghost">›</button>
+            <button id="todayBtn" class="btn ghost">今天</button>
+          </div>
+          <div class="weekdays" id="weekdays"></div>
+          <div id="monthGrid" class="month-grid"></div>
+          <div id="dayPanel"></div>
+        </div>
+      </section>
+
+      <!-- 分类页 -->
+      <section id="page-categories" class="page">
+        <h2 class="page-title">分类管理</h2>
+        <p class="page-desc">为日程添加颜色标签；删除分类后，其下日程自动变为「无分类」。</p>
+        <div class="cat-form card">
+          <input type="text" id="catName" class="input" placeholder="新分类名称（如：工作）" maxlength="20" />
+          <div class="swatches" id="catColors"></div>
+          <button id="catAdd" class="btn primary">添加分类</button>
+        </div>
+        <div id="catList" class="cat-list"></div>
+      </section>
+
+      <!-- 设置页 -->
+      <section id="page-settings" class="page">
+        <h2 class="page-title">设置</h2>
+        <div class="card settings-card">
+          <div class="setting-row">
+            <div>
+              <div class="setting-name">开机自启</div>
+              <div class="setting-desc" id="autostartDesc">未启用（开启后在启动文件夹创建快捷方式）</div>
+            </div>
+            <label class="switch"><input type="checkbox" id="toggleAutostart" /><span class="slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-name">启动时最小化到托盘</div>
+              <div class="setting-desc">手动启动时不显示窗口，仅驻留托盘后台运行</div>
+            </div>
+            <label class="switch"><input type="checkbox" id="toggleStartMinimized" /><span class="slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-name">桌面提醒</div>
+              <div class="setting-desc">日程到点时弹出系统通知</div>
+            </div>
+            <label class="switch"><input type="checkbox" id="toggleNotify" /><span class="slider"></span></label>
+          </div>
+        </div>
+        <div class="card settings-card">
+          <h3>数据</h3>
+          <div class="info-row"><span>数据目录</span><code id="infoDataPath"></code></div>
+          <div class="info-row"><span>数据库文件</span><code id="infoDbPath"></code></div>
+          <p class="data-note">默认存放于 C 盘（%APPDATA%\日程表），可更换到任意磁盘目录；切换时可选是否移动现有数据。</p>
+          <div class="btn-row">
+            <button id="chooseDataDir" class="btn primary small">选择目录…</button>
+            <button id="resetDataDir" class="btn ghost small">恢复默认（C 盘）</button>
+            <button id="openDataDir" class="btn ghost small">打开数据目录</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 日程编辑弹窗 -->
+  <div id="modalMask" class="mask hidden">
+    <div id="modal" class="modal">
+      <div class="modal-head">
+        <h3 id="modalTitle">新建日程</h3>
+        <button id="modalClose" class="btn ghost">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field"><span>标题 *</span><input type="text" id="fTitle" class="input" placeholder="要做什么？" maxlength="60" /></label>
+        <label class="check"><input type="checkbox" id="fAllDay" /> 全天</label>
+        <div class="field-row">
+          <label class="field"><span>开始日期</span><input type="date" id="fStartDate" class="input" /></label>
+          <label class="field" id="fStartTimeField"><span>开始时间</span><input type="time" id="fStartTime" class="input" /></label>
+        </div>
+        <div class="field-row">
+          <label class="field"><span>结束日期</span><input type="date" id="fEndDate" class="input" /></label>
+          <label class="field" id="fEndTimeField"><span>结束时间</span><input type="time" id="fEndTime" class="input" /></label>
+        </div>
+        <div class="field-row">
+          <label class="field"><span>分类</span><select id="fCategory" class="select"></select></label>
+          <label class="field"><span>提醒</span><select id="fReminder" class="select"></select></label>
+        </div>
+        <div class="field-row">
+          <label class="field"><span>重复</span>
+            <select id="fRepeat" class="select">
+              <option value="none">不重复</option>
+              <option value="daily">每天</option>
+              <option value="weekly">每周</option>
+              <option value="monthly">每月</option>
+            </select>
+          </label>
+          <label class="field hidden" id="repeatIntervalField"><span>间隔</span><input type="number" id="fRepeatInterval" class="input" min="1" max="365" value="1" /></label>
+          <label class="field hidden" id="repeatEndField"><span>结束日期（可选）</span><input type="date" id="fRepeatEnd" class="input" /></label>
+        </div>
+        <label class="field"><span>备注</span><textarea id="fNote" class="input" rows="3" placeholder="补充说明…"></textarea></label>
+        <p class="hint" id="reminderHint"></p>
+      </div>
+      <div class="modal-foot">
+        <button id="modalCancel" class="btn ghost">取消</button>
+        <button id="modalSave" class="btn primary">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastBox"></div>
+  <script src="app.js"></script>
+</body>
+</html>

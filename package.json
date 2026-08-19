@@ -1,0 +1,44 @@
+{
+  "name": "schedule-app",
+  "productName": "日程表",
+  "version": "1.0.0",
+  "description": "本地日程表桌面应用（Electron + SQLite），支持增删改查、桌面提醒、重复日程、分类标签、完成状态与开机自启",
+  "main": "src/main/main.js",
+  "author": "local",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "start:hidden": "electron . --hidden",
+    "test": "node test/db.test.js && node test/autostart.test.js",
+    "test:ui": "electron . --uitest",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.local.schedule",
+    "productName": "日程表",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/sql.js/dist/*.wasm"
+    ],
+    "win": {
+      "icon": "assets/icon.png",
+      "target": [
+        "portable"
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "sql.js": "^1.14.2"
+  }
+}
